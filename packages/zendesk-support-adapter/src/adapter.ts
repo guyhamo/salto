@@ -105,15 +105,15 @@ export const DEFAULT_FILTERS = [
   restrictionFilter,
   organizationFieldFilter,
   hardcodedChannelFilter,
-  // fieldReferencesFilter should be after usersFilter and macroAttachmentsFilter
+  // fieldReferencesFilter should be after usersFilter, macroAttachmentsFilter and tagsFilter
   usersFilter,
+  tagsFilter,
   macroAttachmentsFilter,
   fieldReferencesFilter,
   appsFilter,
   slaPolicyFilter,
   routingAttributeFilter,
   addFieldOptionsFilter,
-  tagsFilter,
   webhookFilter,
   // removeDefinitionInstancesFilter should be after hardcodedChannelFilter
   removeDefinitionInstancesFilter,
@@ -149,6 +149,7 @@ export default class ZendeskAdapter implements AdapterOperations {
   private userConfig: ZendeskConfig
   private getElemIdFunc?: ElemIdGetter
   private configInstance?: InstanceElement
+  private fetchQuery: elementUtils.query.ElementQuery
 
   public constructor({
     filterCreators = DEFAULT_FILTERS,
@@ -165,6 +166,9 @@ export default class ZendeskAdapter implements AdapterOperations {
       client: this.client,
       paginationFuncCreator: paginate,
     })
+
+    this.fetchQuery = elementUtils.query.createElementQuery(this.userConfig[FETCH_CONFIG])
+
     this.createFiltersRunner = async () => (
       filtersRunner(
         {
@@ -175,6 +179,7 @@ export default class ZendeskAdapter implements AdapterOperations {
             apiDefinitions: config.apiDefinitions,
           },
           getElemIdFunc,
+          fetchQuery: this.fetchQuery,
         },
         filterCreators,
         concatObjects,
@@ -188,14 +193,12 @@ export default class ZendeskAdapter implements AdapterOperations {
       adapterName: ZENDESK_SUPPORT,
       types: this.userConfig.apiDefinitions.types,
       supportedTypes: this.userConfig.apiDefinitions.supportedTypes,
-      fetchQuery: elementUtils.query.createElementQuery(this.userConfig[FETCH_CONFIG]),
+      fetchQuery: this.fetchQuery,
       paginator: this.paginator,
       nestedFieldFinder: findDataField,
       computeGetArgs,
       typeDefaults: this.userConfig.apiDefinitions.typeDefaults,
       getElemIdFunc: this.getElemIdFunc,
-      isErrorTurnToConfigSuggestion: error =>
-        error instanceof clientUtils.HTTPError && (error.response.status === 403),
     })
   }
 

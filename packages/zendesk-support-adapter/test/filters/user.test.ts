@@ -14,7 +14,7 @@
 * limitations under the License.
 */
 import { ObjectType, ElemID, InstanceElement, isInstanceElement, toChange, getChangeData } from '@salto-io/adapter-api'
-import { client as clientUtils, filterUtils } from '@salto-io/adapter-components'
+import { client as clientUtils, filterUtils, elements as elementUtils } from '@salto-io/adapter-components'
 import { mockFunction } from '@salto-io/test-utils'
 import { DEFAULT_CONFIG } from '../../src/config'
 import ZendeskClient from '../../src/client/client'
@@ -29,6 +29,7 @@ describe('user filter', () => {
   const slaPolicyType = new ObjectType({ elemID: new ElemID(ZENDESK_SUPPORT, 'sla_policy') })
   const triggerType = new ObjectType({ elemID: new ElemID(ZENDESK_SUPPORT, 'trigger') })
   const workspaceType = new ObjectType({ elemID: new ElemID(ZENDESK_SUPPORT, 'workspace') })
+  const routingAttributeValueType = new ObjectType({ elemID: new ElemID(ZENDESK_SUPPORT, 'routing_attribute_value') })
 
   const triggerInstance = new InstanceElement(
     'test',
@@ -96,6 +97,39 @@ describe('user filter', () => {
           },
           {
             field: 'SOLVED',
+            operator: 'greater_than',
+            value: '96',
+          },
+        ],
+      },
+    },
+  )
+  const routingAttributeValueInstance = new InstanceElement(
+    'test',
+    routingAttributeValueType,
+    {
+      title: 'test',
+      conditions: {
+        all: [
+          {
+            subject: 'status',
+            operator: 'is',
+            value: 'solved',
+          },
+          {
+            subject: 'requester_id',
+            operator: 'is',
+            value: '2',
+          },
+        ],
+        any: [
+          {
+            subject: 'requester_id',
+            operator: 'is',
+            value: '1',
+          },
+          {
+            subject: 'SOLVED',
             operator: 'greater_than',
             value: '96',
           },
@@ -211,20 +245,24 @@ describe('user filter', () => {
       client,
       paginator: mockPaginator,
       config: DEFAULT_CONFIG,
+      fetchQuery: elementUtils.query.createMockQuery(),
     }) as FilterType
   })
 
   describe('onFetch', () => {
     it('should change the user ids to emails', async () => {
       const elements = [
-        macroType, slaPolicyType, triggerType, workspaceType,
+        macroType, slaPolicyType, triggerType, workspaceType, routingAttributeValueType,
         macroInstance, slaPolicyInstance, triggerInstance, workspaceInstance,
+        routingAttributeValueInstance,
       ].map(e => e.clone())
       await filter.onFetch(elements)
       expect(elements.map(e => e.elemID.getFullName()).sort())
         .toEqual([
           'zendesk_support.macro',
           'zendesk_support.macro.instance.test',
+          'zendesk_support.routing_attribute_value',
+          'zendesk_support.routing_attribute_value.instance.test',
           'zendesk_support.sla_policy',
           'zendesk_support.sla_policy.instance.test',
           'zendesk_support.trigger',
@@ -304,6 +342,20 @@ describe('user filter', () => {
           },
         ],
       })
+      const routingAttributeValue = instances.find(e => e.elemID.typeName === 'routing_attribute_value')
+      expect(routingAttributeValue?.value).toEqual({
+        title: 'test',
+        conditions: {
+          all: [
+            { subject: 'status', operator: 'is', value: 'solved' },
+            { subject: 'requester_id', operator: 'is', value: 'b@b.com' },
+          ],
+          any: [
+            { subject: 'requester_id', operator: 'is', value: 'a@a.com' },
+            { subject: 'SOLVED', operator: 'greater_than', value: '96' },
+          ],
+        },
+      })
     })
     it('should not replace anything if the field is not exist', async () => {
       const instance = new InstanceElement(
@@ -359,7 +411,12 @@ describe('user filter', () => {
             ] },
           ]
         })
-      const newFilter = filterCreator({ client, paginator, config: DEFAULT_CONFIG }) as FilterType
+      const newFilter = filterCreator({
+        client,
+        paginator,
+        config: DEFAULT_CONFIG,
+        fetchQuery: elementUtils.query.createMockQuery(),
+      }) as FilterType
       await newFilter.onFetch(elements)
       expect(elements.map(e => e.elemID.getFullName()).sort())
         .toEqual([
@@ -388,7 +445,12 @@ describe('user filter', () => {
             ] },
           ]
         })
-      const newFilter = filterCreator({ client, paginator, config: DEFAULT_CONFIG }) as FilterType
+      const newFilter = filterCreator({
+        client,
+        paginator,
+        config: DEFAULT_CONFIG,
+        fetchQuery: elementUtils.query.createMockQuery(),
+      }) as FilterType
       await newFilter.onFetch(elements)
       const instances = elements.filter(isInstanceElement)
       const macro = instances.find(e => e.elemID.typeName === 'macro')
@@ -576,7 +638,12 @@ describe('user filter', () => {
             ] },
           ]
         })
-      const newFilter = filterCreator({ client, paginator, config: DEFAULT_CONFIG }) as FilterType
+      const newFilter = filterCreator({
+        client,
+        paginator,
+        config: DEFAULT_CONFIG,
+        fetchQuery: elementUtils.query.createMockQuery(),
+      }) as FilterType
       const changes = instances.map(instance => toChange({ after: instance }))
       // We call preDeploy here because it sets the mappings
       await newFilter.preDeploy(changes)

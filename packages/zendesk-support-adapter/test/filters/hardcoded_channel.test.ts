@@ -14,7 +14,7 @@
 * limitations under the License.
 */
 import { ObjectType, ElemID, InstanceElement, isObjectType } from '@salto-io/adapter-api'
-import { client as clientUtils, filterUtils } from '@salto-io/adapter-components'
+import { client as clientUtils, filterUtils, elements as elementUtils } from '@salto-io/adapter-components'
 import { DEFAULT_CONFIG } from '../../src/config'
 import ZendeskClient from '../../src/client/client'
 import { ZENDESK_SUPPORT } from '../../src/constants'
@@ -36,6 +36,7 @@ describe('hardcoded channel filter', () => {
       conditions_all: [
         {
           title: 'Channel',
+          subject: 'via_id',
           operators: [
             { value: 'is', title: 'Is', terminal: false },
             { value: 'is_not', title: 'Is not', terminal: false },
@@ -63,6 +64,7 @@ describe('hardcoded channel filter', () => {
         paginationFuncCreator: paginate,
       }),
       config: DEFAULT_CONFIG,
+      fetchQuery: elementUtils.query.createMockQuery(),
     }) as FilterType
   })
 
@@ -130,6 +132,7 @@ describe('hardcoded channel filter', () => {
           conditions_all: [
             {
               title: 'Channel',
+              subject: 'via_id',
               values: [
                 { value: '0', enabled: true },
                 { value: '4', title: 'Email', enabled: true },
@@ -159,6 +162,7 @@ describe('hardcoded channel filter', () => {
           conditions_all: [
             {
               title: 'Channel',
+              subject: 'via_id',
               values: [
                 { value: '4', title: 'Email', enabled: true },
                 { value: '4', title: 'Test', enabled: true },
@@ -187,7 +191,8 @@ describe('hardcoded channel filter', () => {
         {
           conditions_all: [
             {
-              title: 'Status',
+              title: 'Test',
+              subject: 'another_test',
               values: [
                 { value: '4', title: 'Email', enabled: true },
                 { value: '4', title: 'Test', enabled: true },

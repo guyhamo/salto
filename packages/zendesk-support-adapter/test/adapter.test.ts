@@ -373,8 +373,6 @@ describe('adapter', () => {
           'zendesk_support.trigger_category.instance.Custom_Events___edited@ssbs',
           'zendesk_support.trigger_category.instance.Notifications',
           'zendesk_support.trigger_definition',
-          // We should remove this instance from the expected list once we done with SALTO-2202
-          'zendesk_support.trigger_definition.instance',
           'zendesk_support.trigger_definition__actions',
           'zendesk_support.trigger_definition__actions__metadata',
           'zendesk_support.trigger_definition__actions__metadata__phone_numbers',
@@ -684,46 +682,6 @@ describe('adapter', () => {
       expect(newInstances.map(e => e.elemID.getFullName()).sort()).toEqual([
         'zendesk_support.group.instance.Support',
       ])
-    })
-    it('should return config changes', async () => {
-      mockAxiosAdapter.onGet('/test').replyOnce(403)
-      const { updatedConfig } = await adapter.operations({
-        credentials: new InstanceElement(
-          'config',
-          usernamePasswordCredentialsType,
-          { username: 'user123', password: 'pwd456', subdomain: 'abc' },
-        ),
-        config: new InstanceElement(
-          'config',
-          configType,
-          {
-            [FETCH_CONFIG]: {
-              include: [{
-                type: 'test',
-              }],
-              exclude: [],
-            },
-            [API_DEFINITIONS_CONFIG]: {
-              types: {
-                test: {
-                  request: {
-                    url: '/test',
-                  },
-                  transformation: {
-                    dataField: 'test',
-                  },
-                },
-              },
-              supportedTypes: { test: ['test'] },
-            },
-          },
-        ),
-        elementsSource: buildElementsSourceFromElements([]),
-      }).fetch({ progressReporter: { reportProgress: () => null } })
-      expect(updatedConfig?.config).toHaveLength(1)
-      expect(updatedConfig?.config[0].value.fetch.exclude).toEqual([{
-        type: 'test',
-      }])
     })
   })
 
