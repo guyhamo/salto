@@ -13,7 +13,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-import { AccountId, CredentialError } from '@salto-io/adapter-api'
+import { AccountId } from '@salto-io/adapter-api'
 import { client as clientUtils } from '@salto-io/adapter-components'
 import { Credentials } from '../auth'
 
@@ -22,17 +22,10 @@ const BASE_URL = 'https://www.workato.com/api'
 export const validateCredentials = async ({ connection }: {
   connection: clientUtils.APIConnection
 }): Promise<AccountId> => {
-  try {
-    await connection.get('/users/me')
-    // there is no good stable account id in workato, so we default to empty string to avoid
-    // preventing users from refreshing their credentials in the SaaS.
-    return ''
-  } catch (error) {
-    if (error.response?.status === 401) {
-      throw new CredentialError('Invalid Credentials')
-    }
-    throw error
-  }
+  await connection.get('/users/me')
+  // there is no good stable account id in workato, so we default to empty string to avoid
+  // preventing users from refreshing their credentials in the SaaS.
+  return ''
 }
 
 export const createConnection: clientUtils.ConnectionCreator<Credentials> = retryOptions => (

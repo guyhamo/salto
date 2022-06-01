@@ -31,8 +31,3 @@ export type SaltoElementError = SaltoError & {
 
 export const isSaltoElementError = (error: SaltoError | SaltoElementError):
     error is SaltoElementError => 'elemID' in error
-
-export class CredentialError extends Error {}
-
-export const isCredentialError = (error: unknown): error is CredentialError =>
-  error instanceof CredentialError
