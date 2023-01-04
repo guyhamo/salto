@@ -18,7 +18,7 @@ import { transformValues } from '@salto-io/adapter-utils'
 import { logger } from '@salto-io/logging'
 import { collections } from '@salto-io/lowerdash'
 import _ from 'lodash'
-import { AUTOMATION_TYPE, DASHBOARD_TYPE, NOTIFICATION_EVENT_TYPE_NAME, NOTIFICATION_SCHEME_TYPE_NAME, WORKFLOW_RULES_TYPE_NAME, WORKFLOW_TRANSITION_TYPE_NAME, WORKFLOW_TYPE_NAME } from '../constants'
+import { AUTOMATION_TYPE, DASHBOARD_TYPE, NOTIFICATION_EVENT_TYPE_NAME, NOTIFICATION_SCHEME_TYPE_NAME, PROJECT_ROLE_TYPE, WORKFLOW_RULES_TYPE_NAME, WORKFLOW_TRANSITION_TYPE_NAME, WORKFLOW_TYPE_NAME } from '../constants'
 import { FilterCreator } from '../filter'
 
 const { awu } = collections.asynciterable
@@ -75,6 +75,9 @@ const VALUES_TO_SORT: Record<string, Record<string, string[]>> = {
   },
   [DASHBOARD_TYPE]: {
     gadgets: ['elemID.name'],
+  },
+  [PROJECT_ROLE_TYPE]: {
+    actors: ['displayName'],
   },
 }
 
