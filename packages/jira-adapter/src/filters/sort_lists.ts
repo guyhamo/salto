@@ -72,6 +72,7 @@ const VALUES_TO_SORT: Record<string, Record<string, string[]>> = {
   },
   [WORKFLOW_TRANSITION_TYPE_NAME]: {
     from: ['elemID.name'],
+    properties: ['key'],
   },
   [DASHBOARD_TYPE]: {
     gadgets: ['elemID.name'],
